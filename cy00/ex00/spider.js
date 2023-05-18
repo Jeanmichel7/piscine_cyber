@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import chalk from "chalk";
 
+
 const argv = yargs(hideBin(process.argv))
   .option("r", {
     alias: "recursive",
@@ -34,6 +35,7 @@ function isValidURL(url) {
     return false;
   }
 }
+
 
 async function getAllImages(url) {
   try {
@@ -84,6 +86,7 @@ async function downloadImg(urlImg) {
   }
 }
 
+
 async function getAllLinks(url) {
   try {
     let res = await axios.get(url);
@@ -103,6 +106,7 @@ async function getAllLinks(url) {
     return;
   }
 }
+
 
 async function main(url, level) {
   if(url === undefined) return console.error("url is undefined");
@@ -129,5 +133,6 @@ async function main(url, level) {
     }
   }
 }
+
 
 main(argv._[0], argv.l);
