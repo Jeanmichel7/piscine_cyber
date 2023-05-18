@@ -13,6 +13,12 @@
     "axios": "^1.4.0",
     "chalk": "^5.2.0",
     "cheerio": "^1.0.0-rc.12",
+    "exif-parser": "^0.1.12",
+    "exiftool-vendored": "^22.0.0",
+    "gif-encoder": "^0.7.2",
+    "jimp": "^0.22.8",
+    "node-exiftool": "^2.3.0",
+    "pngjs": "^7.0.0",
     "yargs": "^17.7.2"
   }
 }
