@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+</head>
+<body>
+  <h1> FT-OTP </h1>
+  <label for="name">Your key to generate OTP: </label>
+  <input type="text" id="name" name="name" required>
+  <button onclick="generateQRCode()">Generate QR Code</button>
+  <div id="qrcode"></div>
+
+  <script>
+    function generateQRCode() {
+      const value = document.getElementById("name").value;
+      const qrcodeDiv = document.getElementById("qrcode");
+      qrcodeDiv.innerHTML = ""; // clear the div
+      new QRCode(qrcodeDiv, value); // create new QRCode
+      //ok flemme
+    }
+  </script>
+
+</body>
+</html>

@@ -1,10 +1,10 @@
 import fs from "fs";
 import yargs from "yargs";
-import crypto from "crypto";
-// var hotp = require( 'hotp' )
-import hotp from 'hotp';
-let counter = 0
-
+import crypto, { setEngine } from "crypto";
+import { authenticator } from 'otplib';
+import { toDataURL } from 'qrcode';
+import pkg from 'hi-base32';
+const { encode, decode } = pkg;
 
 const argv = yargs(process.argv.slice(2))
   .usage("-g <key file> | -k <key file>")
@@ -58,44 +58,42 @@ class Crypto {
     return fs.readFileSync(this.#privateKeyPath, "utf8");
   }
 }
-// console.log(chiffrement.getPrivateKey())
-
-// HOTP generation
-// function generateTOTP(secret) {
-//   const hmac = crypto.createHmac("sha1", Buffer.from(secret, "hex"));
-//   const counter = Math.floor(Date.now() / 1000 / 30); // 30s
-//   hmac.update(Buffer.from(counter.toString(16).padStart(16, "0"), "hex"));
-
-//   const hmacResult = hmac.digest();
-//   const offset = hmacResult[hmacResult.length - 1] & 0xf;
-//   const binaryCode =
-//     ((hmacResult[offset] & 0x7f) << 24) |
-//     ((hmacResult[offset + 1] & 0xff) << 16) |
-//     ((hmacResult[offset + 2] & 0xff) << 8) |
-//     (hmacResult[offset + 3] & 0xff);
-
-//   return (binaryCode % Math.pow(10, 6)).toString().padStart(6, "0");
-// }
 
 
-function generateHTOP(secret, counter){
-  var token = hotp( secret, counter, { digits: 6 })
-  counter += 1
-  return token;
-}
-
-function generateTemporyPass(secret, counter) {
-  var token = hotp( secret, counter, { digits: 6 })
-  counter += 1
-  // trasform token HOTP in TOTP
-
+// HOTP generation https://www.ietf.org/rfc/rfc4226.txt
+function generateTOTP(secret) {
+  const hmac = crypto.createHmac("sha1", Buffer.from(secret, "hex"));
   const time = Math.floor(Date.now() / 1000 / 30); // 30s
+  hmac.update(Buffer.from(time.toString(16).padStart(16, "0"), "hex"));
 
+  const hmacResult = hmac.digest();
+  const offset = hmacResult[19] & 0xf;
+  const binaryCode =
+    ((hmacResult[offset] & 0x7f) << 24) |
+    ((hmacResult[offset + 1] & 0xff) << 16) |
+    ((hmacResult[offset + 2] & 0xff) << 8) |
+    (hmacResult[offset + 3] & 0xff);
 
-
-  return token;
-
+  return (binaryCode % Math.pow(10, 6)).toString().padStart(6, "0");
 }
+
+
+async function generateQRCode(secretKey) {
+  const secretKeyBuffer = Buffer.from(secretKey, 'hex');
+  const secretKeyBase32 = encode(secretKeyBuffer).replace(/=/g, '');
+  const otpauthUrl = authenticator.keyuri(
+    'test@gmail.com',
+    'ft_otp',
+    secretKeyBase32,
+  );
+  const qrcode = await toDataURL(otpauthUrl);
+  console.log(qrcode)
+}
+
+
+
+
+
 
 const chiffrement = new Crypto();
 if (argv.g) {
@@ -115,9 +113,7 @@ if (argv.g) {
   );
   const encryptedKey = encrypted.toString("base64");
   fs.writeFileSync("ft_otp.key", encryptedKey);
-}
-
-else if (argv.k) {
+} else if (argv.k) {
   const encryptedKey = fs.readFileSync(argv.k, "utf-8");
   const buffer = Buffer.from(encryptedKey, "base64");
   const decrypted = crypto.privateDecrypt(
@@ -130,8 +126,9 @@ else if (argv.k) {
   );
 
   const secretKey = decrypted.toString("utf8");
-  console.log(generateTemporyPass(secretKey, counter));
-  console.log(counter)
+  const TOTPCode = generateTOTP(secretKey);
+  console.log(TOTPCode);
+  await generateQRCode(secretKey)
 } else {
   console.error("No arguments provided.");
   process.exit(1);
