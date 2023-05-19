@@ -16,9 +16,11 @@
     "exif-parser": "^0.1.12",
     "exiftool-vendored": "^22.0.0",
     "gif-encoder": "^0.7.2",
+    "hotp": "^3.0.0",
     "jimp": "^0.22.8",
     "node-exiftool": "^2.3.0",
     "pngjs": "^7.0.0",
+    "totp-generator": "^0.0.14",
     "yargs": "^17.7.2"
   }
 }

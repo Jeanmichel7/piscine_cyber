@@ -12,5 +12,5 @@ oathtool --totp -b $keyBase32
 
 
 echo "Retour my script :"
-node main.js -g key.hex
+node ft_otp.js -g key.hex
 node ft_otp.js -k ft_otp.key

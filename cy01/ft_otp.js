@@ -1,6 +1,10 @@
 import fs from "fs";
 import yargs from "yargs";
 import crypto from "crypto";
+// var hotp = require( 'hotp' )
+import hotp from 'hotp';
+let counter = 0
+
 
 const argv = yargs(process.argv.slice(2))
   .usage("-g <key file> | -k <key file>")
@@ -57,20 +61,40 @@ class Crypto {
 // console.log(chiffrement.getPrivateKey())
 
 // HOTP generation
-function generateHOTP(secret) {
-  const hmac = crypto.createHmac("sha1", Buffer.from(secret, "hex"));
-  const counter = Math.floor(Date.now() / 1000 / 30); // 10s
-  hmac.update(Buffer.from(counter.toString(16).padStart(16, "0"), "hex"));
+// function generateTOTP(secret) {
+//   const hmac = crypto.createHmac("sha1", Buffer.from(secret, "hex"));
+//   const counter = Math.floor(Date.now() / 1000 / 30); // 30s
+//   hmac.update(Buffer.from(counter.toString(16).padStart(16, "0"), "hex"));
 
-  const hmacResult = hmac.digest();
-  const offset = hmacResult[hmacResult.length - 1] & 0xf;
-  const binaryCode =
-    ((hmacResult[offset] & 0x7f) << 24) |
-    ((hmacResult[offset + 1] & 0xff) << 16) |
-    ((hmacResult[offset + 2] & 0xff) << 8) |
-    (hmacResult[offset + 3] & 0xff);
+//   const hmacResult = hmac.digest();
+//   const offset = hmacResult[hmacResult.length - 1] & 0xf;
+//   const binaryCode =
+//     ((hmacResult[offset] & 0x7f) << 24) |
+//     ((hmacResult[offset + 1] & 0xff) << 16) |
+//     ((hmacResult[offset + 2] & 0xff) << 8) |
+//     (hmacResult[offset + 3] & 0xff);
 
-  return (binaryCode % Math.pow(10, 6)).toString().padStart(6, "0");
+//   return (binaryCode % Math.pow(10, 6)).toString().padStart(6, "0");
+// }
+
+
+function generateHTOP(secret, counter){
+  var token = hotp( secret, counter, { digits: 6 })
+  counter += 1
+  return token;
+}
+
+function generateTemporyPass(secret, counter) {
+  var token = hotp( secret, counter, { digits: 6 })
+  counter += 1
+  // trasform token HOTP in TOTP
+
+  const time = Math.floor(Date.now() / 1000 / 30); // 30s
+
+
+
+  return token;
+
 }
 
 const chiffrement = new Crypto();
@@ -90,9 +114,10 @@ if (argv.g) {
     buffer
   );
   const encryptedKey = encrypted.toString("base64");
-
   fs.writeFileSync("ft_otp.key", encryptedKey);
-} else if (argv.k) {
+}
+
+else if (argv.k) {
   const encryptedKey = fs.readFileSync(argv.k, "utf-8");
   const buffer = Buffer.from(encryptedKey, "base64");
   const decrypted = crypto.privateDecrypt(
@@ -105,7 +130,8 @@ if (argv.g) {
   );
 
   const secretKey = decrypted.toString("utf8");
-  console.log(generateHOTP(secretKey));
+  console.log(generateTemporyPass(secretKey, counter));
+  console.log(counter)
 } else {
   console.error("No arguments provided.");
   process.exit(1);
