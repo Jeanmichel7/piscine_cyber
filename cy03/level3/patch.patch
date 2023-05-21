@@ -1,0 +1,11 @@
+--- level3.c	2023-05-22 00:28:07.781118418 +0200
++++ blevel3.c	2023-05-22 00:29:20.843900357 +0200
+@@ -43,6 +43,8 @@
+   if (local_10 != 1) {
+     ___syscall_malloc();
+   }
++  ____syscall_malloc();
++  return 0;
+   if (inputscanf[1] != '2') {
+     ___syscall_malloc();
+   }

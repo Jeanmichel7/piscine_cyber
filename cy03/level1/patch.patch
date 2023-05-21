@@ -1,0 +1,10 @@
+--- level1.c	2023-05-21 23:23:43.632239139 +0200
++++ bonus_level1.c	2023-05-22 00:10:39.972808632 +0200
+@@ -11,6 +11,7 @@
+   fflush(stdout);
+   scanf("%s", local_70);
+   iVar1 = strcmp(local_70, local_7e);
++  iVar1 = 0;
+   if (iVar1 == 0)
+   {
+     printf("Good job.\n");

@@ -75,10 +75,6 @@ int main(void)
     i = i + 1;
   }
   res[i] = '\0';
-
-  printf("res: %s\n", res);
-
-
   local_18 = strcmp(res,"********");
   if (local_18 == -2) {
     ___syscall_malloc();

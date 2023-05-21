@@ -1,1 +1,4 @@
 __stack_check
+
+diff -u level1.c bonus_level1.c > patch.patch
+patch level1.c < patch.patch
