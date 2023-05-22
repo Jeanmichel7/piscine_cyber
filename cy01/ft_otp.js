@@ -87,7 +87,7 @@ async function generateQRCode(secretKey) {
     secretKeyBase32,
   );
   const qrcode = await toDataURL(otpauthUrl);
-  console.log(qrcode)
+  // console.log(qrcode)
 }
 
 

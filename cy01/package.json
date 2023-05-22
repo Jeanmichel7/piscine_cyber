@@ -1,0 +1,19 @@
+{
+  "name": "cy01",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "ft_otp.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "hi-base32": "^0.5.1",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.5.3",
+    "yargs": "^17.7.2"
+  }
+}
