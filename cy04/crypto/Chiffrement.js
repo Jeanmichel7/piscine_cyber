@@ -1,13 +1,13 @@
 import crypto from "crypto";
 import fs from "fs";
+import { type } from "os";
 
 export default class Chiffrement {
   #rsaPublicKeyPath = "crypto/rsa_public_key.pem";
   #rsaPrivateKeyPath = "crypto/rsa_private_key.pem";
 
   constructor() {
-    this.#initRSAKeys();
-    this.#initAESKeys();
+    // this.#initRSAKeys();
   }
 
   /* ********************** */
@@ -45,9 +45,25 @@ export default class Chiffrement {
     return crypto.publicEncrypt(this.#getRSAPublicKey(), Buffer.from(data));
   }
   rsaDecrypt(data) {
-    // console.log(data);
     return crypto.privateDecrypt(this.#getRSAPrivateKey(), data).toString();
   }
+
+
+  encryptAesKey() {
+    const encryptedAESKey = this.rsaEncrypt(this.#aesKey);
+    fs.writeFileSync("crypto/aes_key.enc", encryptedAESKey.toString("hex"));
+    this.#aesKey = null;
+  }
+
+  decryptAESKey() {
+    const aesKeyHex = fs.readFileSync("crypto/aes_key.enc", "utf8");
+    const encryptedKey = Buffer.from(aesKeyHex, "hex");
+    const aesKey = this.rsaDecrypt(encryptedKey);
+    this.#aesKey = aesKey;
+  }
+
+
+
 
 
 
@@ -56,31 +72,19 @@ export default class Chiffrement {
   /* ********************** */
   /*           AES          */
   /* ********************** */
+  #aesKey = null;
 
-  #initAESKeys() {
-    if (!fs.existsSync("crypto/aes_key.enc")) {
-      let aesKey = crypto.randomBytes(32);
-      aesKey = aesKey.toString("hex");
-      // console.log('init AES key : ', aesKey)
-
-      //chiffre AES key with RSA
-      const encryptedAESKey = this.rsaEncrypt(aesKey);
-      fs.writeFileSync("crypto/aes_key.enc", encryptedAESKey.toString("hex"));
-    }
-  }
-
-  #getAESKey() {
-    const aesKeyHex = fs.readFileSync("crypto/aes_key.enc", "utf8");
-    const encryptedKey = Buffer.from(aesKeyHex, "hex");
-    const aesKey = this.rsaDecrypt(encryptedKey);
-    return Buffer.from(aesKey, "hex");
+  createNewAESKey() {
+    let aesKey = crypto.randomBytes(32);
+    aesKey = aesKey.toString("hex");
+    this.#aesKey = aesKey;
   }
 
   aesEncryptWithIV(data) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(
       "aes-256-cbc",
-      this.#getAESKey(),
+      Buffer.from(this.#aesKey, "hex"),
       iv
     );
     let encrypted = cipher.update(data);
@@ -94,7 +98,7 @@ export default class Chiffrement {
     const encryptedText = Buffer.from(textParts.join(":"), "hex");
     const decipher = crypto.createDecipheriv(
       "aes-256-cbc",
-      this.#getAESKey(),
+      Buffer.from(this.#aesKey, "hex"),
       iv
     );
     let decrypted = decipher.update(encryptedText);
