@@ -1,0 +1,37 @@
+version: "3"
+services:
+  client:
+    container_name: client
+    build: client/
+    networks:
+      - network
+    environment:
+      - DISPLAY=${DISPLAY}
+    restart: always
+
+  server:
+    container_name: server
+    build: server/
+    networks:
+      - network
+    environment:
+      - DISPLAY=${DISPLAY}
+    ports:
+      - "20:20"
+      - "21:21"
+    restart: always
+
+  attacker:
+    container_name: attacker
+    build: attacker/
+    networks:
+      - network
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /home/jrasser/piscine_cyber/cy06/attacker/inquisitor.cpp:/home/inquisitor.cpp
+    restart: always
+
+networks:
+  network:
+    driver: bridge
