@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y libpcap-dev g++ tcpdump vim
 COPY inquisitor.cpp /home
 
 WORKDIR /home
-RUN g++ inquisitor.cpp -lpcap -o inquisitor
-
+RUN g++ inquisitor.cpp -o inquisitor -lpcap -lpthread 
 
 CMD ["tail", "-f", "/dev/null"]
