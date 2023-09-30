@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM debian:buster
 
-RUN apt-get update && apt-get install -y libpcap-dev g++ tcpdump vim
+RUN apt-get update && apt-get install -y libpcap-dev g++ tcpdump vim net-tools
 
 COPY inquisitor.cpp /home
 
