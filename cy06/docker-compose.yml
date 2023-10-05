@@ -5,8 +5,6 @@ services:
     build: client/
     networks:
       - network
-    environment:
-      - DISPLAY=${DISPLAY}
     restart: always
 
   server:
@@ -14,8 +12,6 @@ services:
     build: server/
     networks:
       - network
-    environment:
-      - DISPLAY=${DISPLAY}
     ports:
       - "20:20"
       - "21:21"
@@ -26,8 +22,6 @@ services:
     build: attacker/
     networks:
       - network
-    environment:
-      - DISPLAY=${DISPLAY}
     volumes:
       - /home/jrasser/piscine_cyber/cy06/attacker/inquisitor.cpp:/home/inquisitor.cpp
     restart: always

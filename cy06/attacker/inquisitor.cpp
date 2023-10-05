@@ -356,7 +356,7 @@ void signalHandler(int signum)
     exit(signum);
 }
 
-// g++ inquisitor.cpp -o inquisitor -lpcap -lpthread && ./inquisitor 172.20.0.3 02:42:ac:14:00:03 172.20.0.4 02:42:ac:14:00:04
+// g++ inquisitor.cpp -o inquisitor -lpcap -lpthread && ./inquisitor 172.19.0.3 02:42:ac:13:00:02 172.19.0.4 02:42:ac:13:00:04
 int main(int argc, char *argv[])
 {
     char errbuf[PCAP_ERRBUF_SIZE];

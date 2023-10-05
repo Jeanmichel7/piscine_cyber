@@ -3,14 +3,17 @@ FROM debian:buster
 
 RUN apt-get update && apt-get install -y ftp g++ libpcap-dev libcurl4-openssl-dev vim net-tools
 
-COPY clientFile.txt home/
-COPY src/* home/
+COPY clientFile.txt /home/
+COPY src/* /home/
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 
 WORKDIR /home
 RUN g++ client.cpp -lcurl -o client
 RUN g++ sendFile.cpp -lcurl -o send
 RUN g++ receiveFile.cpp -lcurl -o receive
 
+ENTRYPOINT [ "/entrypoint.sh" ]
 CMD ["tail", "-f", "/dev/null"]
 
 # CMD ["./client"]

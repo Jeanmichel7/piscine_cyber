@@ -1,12 +1,23 @@
 all: 
 	docker-compose up
 
+build: 
+	docker-compose up --build
+
+down:
+	docker-compose down
+
+re: down build
+
+restartserver:
+	docker-compose up -d --no-deps --build server
+
 restartclient:
 	docker-compose up -d --no-deps --build client
 
-bla:
-	gcc -o inquisitor inquisitor.c -lpcap -lpthread -lssl
+restartdb:
+	docker-compose up -d --no-deps --build db
 
-run:
-	docker-compose up -d
-	./inquisitor
+restart: restartserver restartclient restartdb
+
+restartall: down build

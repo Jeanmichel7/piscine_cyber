@@ -9,7 +9,10 @@ RUN apt-get update && \
 
 COPY vsftpd.conf /etc/vsftpd.conf
 COPY serverFile.txt /home/user/
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 20 21
 
+ENTRYPOINT [ "/entrypoint.sh" ]
 CMD ["vsftpd", "/etc/vsftpd.conf"]
