@@ -24,6 +24,7 @@ services:
       - network
     volumes:
       - /home/jrasser/piscine_cyber/cy06/attacker/inquisitor.cpp:/home/inquisitor.cpp
+      - /home/jrasser/piscine_cyber/cy06/attacker/data.txt:/home/data.txt
     restart: always
 
 networks:

