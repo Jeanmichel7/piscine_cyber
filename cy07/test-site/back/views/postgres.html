@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test postgres</title>
+  </head>
+  <body
+    style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: rgb(41, 41, 41);
+      color: rgb(226, 226, 226);
+    "
+  >
+    <p>Postgres</p>
+
+    <a href="/postgres/users?user=1" style="color: #8a85f2">Users 1</a>
+    <a href="/postgres/users?user=2" style="color: #8a85f2">Users 2</a>
+
+    <h2>Formulaire d'authentification</h2>
+    <form id="authForm">
+      <label for="username">Nom d'utilisateur :</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        class="testClassName"
+        required
+      />
+      <br />
+      <label for="password">Mot de passe :</label>
+      <input type="password" id="password" name="password" required />
+      <br />
+      <input type="submit" value="Se connecter" />
+      <br />
+
+      <p id="authMessage"></p>
+      <div id="userInfo" class="hidden">
+        <p>ID: <span id="userId"></span></p>
+        <p>Nom: <span id="userName"></span></p>
+        <p>Password: <span id="userPwd"></span></p>
+        <p>Description <span id="userDescription"></span></p>
+      </div>
+    </form>
+    <br />
+    <br />
+    <h2>Formulaire d'authentification 2</h2>
+
+    <form id="authForm2">
+      <label for="username2">Nom d'utilisateur :</label>
+      <input type="text" id="username2" name="username" required />
+      <br />
+      <label for="password2">Mot de passe :</label>
+      <input type="password" id="password2" name="password" required />
+      <br />
+      <input type="submit" value="Se connecter" />
+      <br />
+
+      <p id="authMessage2"></p>
+      <div id="userInfo2" class="hidden">
+        <p>ID: <span id="userId2"></span></p>
+        <p>Nom: <span id="userName2"></span></p>
+        <p>Password: <span id="userPwd2"></span></p>
+        <p>Description <span id="userDescription2"></span></p>
+      </div>
+    </form>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("authForm");
+
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+
+          fetch("/api/postgres/auth/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("res data:", data);
+              document.getElementById("authMessage").textContent = data.error
+                ? data.error
+                : "Success";
+              document.getElementById("userId").textContent = data[0]?.id;
+              document.getElementById("userName").textContent =
+                data[0]?.username;
+              document.getElementById("userPwd").textContent =
+                data[0]?.password;
+              document.getElementById("userDescription").textContent =
+                data[0]?.description;
+            })
+            .catch((error) => {
+              console.warn("Error:", error);
+              document.getElementById("authMessage").textContent =
+                "Failed" + error;
+            });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+FROM adminer
+
+USER root
+
+# Installation des dépendances pour OCI8 et configuration de l'environnement
+RUN apt-get update && apt-get install -y \
+    libaio1 \
+    unzip \
+    php-pear \
+    php-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir /usr/local/instantclient \
+ && cd /usr/local/instantclient
+
+# Télécharger et installer le client instantané Oracle et le SDK
+ADD https://download.oracle.com/otn_software/linux/instantclient/213000/instantclient-basiclite-linux.x64-21.3.0.0.0.zip /tmp/basiclite.zip
+ADD https://download.oracle.com/otn_software/linux/instantclient/213000/instantclient-sdk-linux.x64-21.3.0.0.0.zip /tmp/sdk.zip
+
+RUN unzip /tmp/basiclite.zip -d /usr/local/ && \
+    unzip /tmp/sdk.zip -d /usr/local/ && \
+    rm -rf /tmp/basiclite.zip /tmp/sdk.zip
+
+ENV LD_LIBRARY_PATH /usr/local/instantclient_21_3
+
+# Installer l'extension OCI8
+RUN echo 'instantclient,/usr/local/instantclient_21_3' | pecl install oci8-2.2.0
+
+# Assurez-vous que la configuration PHP est correcte pour le support OCI8
+RUN echo "extension=oci8.so" >> /etc/php/7.4/cli/php.ini

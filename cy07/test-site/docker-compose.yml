@@ -1,0 +1,65 @@
+version: "3"
+
+services:
+  mysql-db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - 3306:3306
+
+  postgres:
+    build: ./postgres
+    container_name: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/16/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: testdb
+    restart: always
+
+  express:
+    build: ./back/
+    ports:
+      - 3000:3000
+    volumes:
+      - ./back:/app
+    depends_on:
+      - mysql-db
+      - postgres
+
+  adminer-mysql:
+    build: ./adminer/
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql-db
+      ADMINER_DEFAULT_DB: testdb
+      ADMINER_DEFAULT_USER: user
+      ADMINER_DEFAULT_PASS: userpassword
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql-db
+
+  adminer-postgres:
+    build: ./adminer/
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_DB: testdb
+      ADMINER_DEFAULT_USER: postgres
+      ADMINER_DEFAULT_PASS: postgres
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  mysql_data:

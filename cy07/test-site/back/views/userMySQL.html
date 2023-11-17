@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body
+    style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: rgb(41, 41, 41);
+      color: rgb(226, 226, 226);
+    "
+  >
+    <h1>Mysql User</h1>
+    <div id="userInfo">
+      <p>ID: <span id="userId"></span></p>
+      <p>Nom: <span id="userName"></span></p>
+      <p>Description: <span id="userDescription"></span></p>
+    </div>
+  </body>
+
+  <script>
+    const userId = window.location.search.split("=")[1];
+
+    // const pathname = window.location.pathname;
+    // const pathComponents = pathname.split("/");
+
+    if (userId) {
+      // const userId = pathComponents[3];
+
+      const route = "/api/mysql/users?user=" + userId;
+      console.log("route : ", route);
+
+      fetch(route, {
+        method: "GET",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("data : ", data);
+          document.getElementById("userId").textContent = data[0]?.id;
+          document.getElementById("userName").textContent = data[0]?.username;
+          document.getElementById("userDescription").textContent =
+            data[0]?.description;
+        });
+    }
+  </script>
+</html>
