@@ -21,9 +21,9 @@ restartserver:
 restartclient:
 	docker-compose up -d --no-deps --build client
 
-restartdb:
-	docker-compose up -d --no-deps --build db
+restartattacker:
+	docker-compose up -d --no-deps --build attacker
 
-restart: restartserver restartclient restartdb
+restart: restartserver restartclient restartattacker
 
 restartall: down build

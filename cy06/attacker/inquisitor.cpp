@@ -215,7 +215,7 @@ void convertArgsServer(uint8_t *ip_address_server, uint8_t *mac_address_server, 
     sprintf(mac_str, "%02x:%02x:%02x:%02x:%02x:%02x",
             mac_address_server[0], mac_address_server[1], mac_address_server[2],
             mac_address_server[3], mac_address_server[4], mac_address_server[5]);
-    std::cout << "mac addr client: " << mac_str << std::endl;
+    std::cout << "mac addr server: " << mac_str << std::endl;
 }
 
 uint8_t *buildPacketARPSpoofing(
