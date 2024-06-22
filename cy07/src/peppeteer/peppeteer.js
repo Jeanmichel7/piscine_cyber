@@ -20,13 +20,20 @@ import {
 const dbData = {
   dbEngine: "",
   dbName: "",
+  tableData: [],
   table: [],
   columns: [],
-  nbColumns: 0,
-  rows: [],
   vulnerableParameters: [],
   payloadsUsed: [],
 };
+
+// const tableData = {
+//   name: "",
+//   columns: [],
+//   nbColumns: 0,
+//   rows: [],
+//   nbRows: 0,
+// };
 
 const tester = async (url, argv) => {
   const requestType = argv.X ? argv.X : "GET";
@@ -60,7 +67,7 @@ const tester = async (url, argv) => {
     await dbGetColumns(page, dbData);
     await dbGetDump(page, dbData);
 
-    console.log("\n\n" + dbData + "\n\n");
+    // console.log("\n\n" + dbData + "\n\n");
   } else if (argv.X === "POST") {
     await page.goto(url);
     const forms = await formsFound(page);
@@ -70,13 +77,14 @@ const tester = async (url, argv) => {
     await dbPostGetColumns(page, forms, dbData);
     await dbPostDump(page, forms, dbData);
 
-    console.log("\n\n" + dbData + "\n\n");
+    // console.log("\n\n" + dbData + "\n\n");
   } else {
     console.log("Error: Invalid request type");
     process.exit(1);
   }
 
   await browser.close();
+  delete dbData.nbColumns;
   saveInFile(dbData);
 };
 

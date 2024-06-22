@@ -4,9 +4,7 @@ import { initRequest, initArchive } from "./file.js";
 import { tester } from "./peppeteer/peppeteer.js";
 
 const argv = yargs(process.argv.slice(2))
-  .usage(
-    "--help | --version | -X <Request Type> <URL> | -o <Archive File> <URL>"
-  )
+  .usage(" ./vaccine [--help] [--version] [-oX] URL")
   .option("o", {
     describe:
       "Archive file, if not specified it will be stored in a default one",

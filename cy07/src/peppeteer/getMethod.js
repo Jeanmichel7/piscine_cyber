@@ -160,15 +160,15 @@ const testVulnerabilite = async (baseUrl, page, dbData) => {
     });
   });
   const urlReuqest = baseUrl;
-  console.log("1");
+  // console.log("1");
   await page.goto(urlReuqest);
-  console.log("2");
+  // console.log("2");
 
   const resultRef = await refereceResponse;
-  console.log("3");
+  // console.log("3");
 
   const isVulError = await testVulnError(baseUrl, page, dbData);
-  console.log("isVulError : ", isVulError);
+  // console.log("isVulError : ", isVulError);
   if (isVulError) return true;
 
   const resultsTestBool = await testVulnBoolean(baseUrl, page, dbData);
@@ -334,7 +334,9 @@ const dbGetColumns = async (page, dbData) => {
     let columnsOfTable = {
       tableName: table,
       columns: [],
+      nbColumns: 0,
       data: [],
+      nbRows: 0,
     };
     let payloadDbColumn = dataBasesDumpsEngine.replace(
       "SELECT ",
@@ -389,6 +391,9 @@ const dbGetColumns = async (page, dbData) => {
         dbData.payloadsUsed.push(payloadDbColumn);
     }
     // }
+
+    columnsOfTable.nbColumns = columnsOfTable.columns.length;
+    columnsOfTable.nbRows = columnsOfTable.data.length;
   }
   await page.goto(baseUrl);
 };
@@ -486,8 +491,11 @@ const dbGetDump = async (page, dbData) => {
         for (const elem of response) {
           // console.log("elem", extractData(elem));
           const tmp = extractData(elem);
-          if (tmp)
-            dbData.columns.find((c) => c.tableName === table).data.push(tmp);
+          if (tmp) {
+            let machin = dbData.columns.find((c) => c.tableName === table);
+            machin.data.push(tmp);
+            machin.nbRows++;
+          }
 
           // dbData.columns.data.push(elem[firstColumn]);
         }
